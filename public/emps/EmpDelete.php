@@ -1,0 +1,62 @@
+<?php
+
+require_once($_SERVER["DOCUMENT_ROOT"] . "/ph34/scottadmin/classes/Conf.php");
+require_once($_SERVER["DOCUMENT_ROOT"] . "/ph34/scottadmin/classes/entity/Emp.php");
+
+$deleteEmpId = $_POST["deleteEmpId"];
+
+try {
+    $db = new PDO(Conf::DB_DNS, Conf::DB_USERNAME, Conf::DB_PASSWORD);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
+    $sql = "DELETE FROM emps WHERE id = :id";
+
+    $stmt = $db->prepare($sql);
+    $stmt->bindValue(":id", $deleteEmpId, PDO::PARAM_INT);
+
+    // ToDo: ここでエラーが発生している。
+    $result = $stmt->execute();
+
+    if (!$result) {
+        $_SESSION["errorMsg"] = "情報削除に失敗しました。もう一度はじめからやり直してください。";
+    }
+} catch (PDOException $ex) {
+    var_dump($ex);
+    $_SESSION["errorMsg"] = "DB接続に失敗しました。";
+} finally {
+    $db = null;
+}
+if (isset($_SESSION["errorMsg"])) {
+    header("Jobation: /ph34/scottadmin/public/error.php");
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Shinzo SAITO">
+    <title>部門情報削除完了 | ScottAdmin Sample</title>
+    <link rel="stylesheet" href="/ph34/scottadmin/public/css/main.css" type="text/css">
+</head>
+
+<body>
+    <h1>部門情報削除完了</h1>
+    <nav id="breadcrumbs">
+        <ul>
+            <li><a href="/ph34/scottadmin/public/">TOP</a></li>
+            <li><a href="/ph34/scottadmin/public/emps/showEmpList.php">部門リスト</a></li>
+            <li>部門情報削除確認</li>
+            <li>部門情報削除完了</li>
+        </ul>
+    </nav>
+    <section>
+        <p>部門ID<?= $deleteEmpId ?>の情報を削除しました。</p>
+        <p>部門リストに<a href="/ph34/scottadmin/public/emps/showEmpList.php">戻る</a></p>
+    </section>
+</body>
+
+</html>
